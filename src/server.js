@@ -32,18 +32,33 @@ const CollaborationsValidator = require('./validator/collaborations');
 
 const PlaylistActivitiesService = require('./services/postgres/PlaylistActivitiesService');
 
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
+const StorageService = require('./services/S3/StorageService');
+const UploadsValidator = require('./validator/uploads');
+const CacheService = require('./services/redis/CacheService');
+
+const config = require('./utils/config');
+
 const init = async () => {
-  const albumsService = new AlbumsService();
+  const cacheService = new CacheService();
+  const albumsService = new AlbumsService(cacheService);
   const songsService = new SongsService();
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
   const playlistsService = new PlaylistsService();
   const playlistActivitiesService = new PlaylistActivitiesService();
-  const collaborationsService = new CollaborationsService(usersService, playlistsService);
+  const collaborationsService = new CollaborationsService(
+    usersService,
+    playlistsService,
+  );
+  const storageService = new StorageService();
 
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -54,12 +69,12 @@ const init = async () => {
   await server.register([{ plugin: Jwt }]);
 
   server.auth.strategy('musicapp_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.app.accessTokenKey,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.app.accessTokenAge,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -83,7 +98,9 @@ const init = async () => {
       plugin: albums,
       options: {
         service: albumsService,
+        storageService,
         validator: AlbumsValidator,
+        uploadsValidator: UploadsValidator,
       },
     },
     {
@@ -115,6 +132,14 @@ const init = async () => {
         collaborationsService,
         playlistsService,
         validator: CollaborationsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        producerService: ProducerService,
+        playlistsService,
+        validator: ExportsValidator,
       },
     },
   ]);

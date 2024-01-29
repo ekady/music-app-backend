@@ -18,7 +18,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
 
@@ -42,7 +42,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
 
@@ -63,7 +63,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('Playlist gagal ditambahkan');
     }
 
@@ -99,7 +99,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('Playlist gagal dihapus. Id tidak ditemukan.');
     }
   }
@@ -114,7 +114,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('Musik gagal ditambahkan ke dalam playlist');
     }
   }
@@ -133,7 +133,7 @@ class PlaylistsService {
 
     const playlistsResult = await this._pool.query(queryPlaylist);
 
-    if (!playlistsResult.rows.length) {
+    if (!playlistsResult.rowCount) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
 
@@ -172,7 +172,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError('Musik gagal dihapus dari playlist');
     }
   }
